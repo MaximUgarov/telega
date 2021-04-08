@@ -1,0 +1,16 @@
+server {
+        listen 443 ssl;
+
+        ssl_certificate /home/siteadmin/settings/ssl/codovstvo/codovstvo.crt;
+        ssl_certificate_key /home/siteadmin/settings/ssl/codovstvo/codovstvo.key;
+
+        server_name codovstvo.ru www.codovstvo.ru;
+
+        location /TVO/ {
+                proxy_pass http://127.0.0.1:9000/;
+        }
+
+        location /ONE/ {
+                proxy_pass http://127.0.0.1:9000/;
+        }
+}

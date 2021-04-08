@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "subscriptions",
+  "info": {
+    "name": "subscriptions",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "chanel": {
+      "type": "string"
+    },
+    "userID": {
+      "type": "string"
+    },
+    "endSubscription": {
+      "type": "datetime"
+    },
+    "paidStatus": {
+      "type": "boolean"
+    },
+    "rateName": {
+      "type": "string"
+    },
+    "chanelLink": {
+      "type": "string"
+    }
+  }
+}

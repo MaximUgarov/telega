@@ -1,0 +1,28 @@
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/createscne-1",
+      "handler": "createscne1.find",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/createscne-1",
+      "handler": "createscne1.update",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/createscne-1",
+      "handler": "createscne1.delete",
+      "config": {
+        "policies": []
+      }
+    }
+  ]
+}

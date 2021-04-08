@@ -1,0 +1,17 @@
+{
+  "kind": "singleType",
+  "collectionName": "createscne2s",
+  "info": {
+    "name": "createscne2"
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "text": {
+      "type": "string"
+    }
+  }
+}

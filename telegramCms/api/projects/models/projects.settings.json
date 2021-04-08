@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "projects",
+  "info": {
+    "name": "projects",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "chatID": {
+      "type": "string"
+    },
+    "botToken": {
+      "type": "string"
+    },
+    "qiwiToken": {
+      "type": "string"
+    },
+    "ownerId": {
+      "type": "string"
+    },
+    "rates": {
+      "collection": "rates"
+    }
+  }
+}

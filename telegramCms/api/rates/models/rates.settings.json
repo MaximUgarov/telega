@@ -1,0 +1,26 @@
+{
+  "kind": "collectionType",
+  "collectionName": "rates",
+  "info": {
+    "name": "rates"
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "days": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "apiBotKey": {
+      "type": "string"
+    },
+    "price": {
+      "type": "string"
+    }
+  }
+}

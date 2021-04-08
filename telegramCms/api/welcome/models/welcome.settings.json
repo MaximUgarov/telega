@@ -1,0 +1,17 @@
+{
+  "kind": "singleType",
+  "collectionName": "welcomes",
+  "info": {
+    "name": "Welcome"
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "text": {
+      "type": "string"
+    }
+  }
+}
