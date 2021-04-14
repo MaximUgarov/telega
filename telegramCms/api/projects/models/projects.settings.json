@@ -28,6 +28,11 @@
     },
     "rates": {
       "collection": "rates"
+    },
+    "working": {
+      "type": "boolean",
+      "default": true,
+      "required": false
     }
   }
 }

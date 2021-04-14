@@ -1,0 +1,28 @@
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/create-scene-sub-time",
+      "handler": "create-scene-sub-time.find",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/create-scene-sub-time",
+      "handler": "create-scene-sub-time.update",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/create-scene-sub-time",
+      "handler": "create-scene-sub-time.delete",
+      "config": {
+        "policies": []
+      }
+    }
+  ]
+}

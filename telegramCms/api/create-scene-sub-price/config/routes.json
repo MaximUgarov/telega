@@ -1,0 +1,28 @@
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/create-scene-sub-price",
+      "handler": "create-scene-sub-price.find",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/create-scene-sub-price",
+      "handler": "create-scene-sub-price.update",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/create-scene-sub-price",
+      "handler": "create-scene-sub-price.delete",
+      "config": {
+        "policies": []
+      }
+    }
+  ]
+}

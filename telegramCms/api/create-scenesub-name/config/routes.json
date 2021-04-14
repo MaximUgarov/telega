@@ -1,0 +1,28 @@
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/create-scenesub-name",
+      "handler": "create-scenesub-name.find",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/create-scenesub-name",
+      "handler": "create-scenesub-name.update",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/create-scenesub-name",
+      "handler": "create-scenesub-name.delete",
+      "config": {
+        "policies": []
+      }
+    }
+  ]
+}

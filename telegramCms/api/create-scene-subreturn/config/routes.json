@@ -1,0 +1,28 @@
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/create-scene-subreturn",
+      "handler": "create-scene-subreturn.find",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/create-scene-subreturn",
+      "handler": "create-scene-subreturn.update",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/create-scene-subreturn",
+      "handler": "create-scene-subreturn.delete",
+      "config": {
+        "policies": []
+      }
+    }
+  ]
+}

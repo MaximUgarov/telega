@@ -1,0 +1,21 @@
+{
+  "kind": "singleType",
+  "collectionName": "myprojects",
+  "info": {
+    "name": "myprojects",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "text": {
+      "type": "string"
+    },
+    "errtextnoprojects": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "kind": "singleType",
+  "collectionName": "create_scene_sub_times",
+  "info": {
+    "name": "CreateSceneSubTime",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "text": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "kind": "singleType",
+  "collectionName": "create_scene_subreturns",
+  "info": {
+    "name": "CreateSceneSubreturn",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "text": {
+      "type": "string"
+    },
+    "addBtn": {
+      "type": "string"
+    },
+    "nextBtn": {
+      "type": "string"
+    }
+  }
+}

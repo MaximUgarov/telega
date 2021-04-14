@@ -1,0 +1,28 @@
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/create-scene-token",
+      "handler": "create-scene-token.find",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/create-scene-token",
+      "handler": "create-scene-token.update",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/create-scene-token",
+      "handler": "create-scene-token.delete",
+      "config": {
+        "policies": []
+      }
+    }
+  ]
+}

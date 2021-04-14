@@ -20,7 +20,7 @@ const {
     leave
 } = Stage;
 const bot = new Telegraf(BOT_TOKEN);
-bot.telegram.setWebhook(`https://dac73b982a99.ngrok.io/bot`)
+bot.telegram.setWebhook(`https://codovstvo.ru/mainbot`)
 const server = express();
 const Scene = require('telegraf/scenes/base')
 const {
@@ -33,7 +33,7 @@ server.use(bodyParser.json({
 server.use(bodyParser.urlencoded({
     extended: true
 }))
-server.listen(3001, err => {
+server.listen(10055, err => {
     if (err) {
         throw err;
     }
@@ -44,7 +44,7 @@ server.listen(3001, err => {
 bot.hears('Отменить Создание проекта', async ctx => {
     ctx.reply(`Создание отменено`,
         Markup.keyboard([
-            ['Создать проект', 'Моя подписка'],
+            ['Создать проект', 'Мои проекты'],
         ])
         .resize()
         .extra(),
@@ -59,15 +59,30 @@ server.post('/bot', ctx => {
     ctx.status = 200
 })
 
-bot.start((ctx) =>
-    ctx.reply(`Привет ${ctx.chat.username}`,
-        Markup.keyboard([
-            ['Создать проект', 'Моя подписка'],
-        ])
-        .resize()
-        .extra(),
-    ),
-);
+server.post('/createpay', (req, res) => {
+    bot.telegram.callApi('createChatInviteLink', req.query).then(data => {
+        res.send(data)
+    }).catch(err => {
+        console.log(err)
+    })
+})
+
+bot.start((ctx) => {
+    axios({
+        method: 'get',
+        url: `${API_URL}/welcome`
+    }).then(res => {
+        ctx.reply(res.data.text,
+            Markup.keyboard([
+                ['Создать проект', 'Мои проекты'],
+            ])
+            .resize()
+            .extra(),
+        )
+    }).catch(err => {
+        console.log(err)
+    })
+});
 
 
 let data = {}
@@ -79,21 +94,27 @@ let rateObj = {
 }
 const scene1 = new Scene('scene1')
 scene1.enter((ctx) => {
-    console.log(ctx.scene.state)
     ctx.scene.state.data = {};
     if (ctx.scene.state.text === undefined) {
-        ctx.reply('Введи название нового проекта:', {
-            reply_markup: {
-                inline_keyboard: [
-                    [{
-                        text: `Отменить создание проекта`,
-                        callback_data: `close`
-                    }],
-                ]
-            }
+        axios({
+            method: 'get',
+            url: `${API_URL}/create-scene-name`
+        }).then(res => {
+            ctx.reply(res.data.text, Markup.removeKeyboard().extra(), {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{
+                            text: `Отменить создание проекта`,
+                            callback_data: `close`
+                        }],
+                    ]
+                }
+            })
+        }).catch(err => {
+            console.log(err)
         })
     } else {
-        ctx.reply(`${ctx.scene.state.text}`, {
+        ctx.reply(ctx.scene.state.text, {
             reply_markup: {
                 inline_keyboard: [
                     [{
@@ -121,8 +142,15 @@ scene1.on('message', ctx => {
     if (ctx.message.text !== undefined) {
         ctx.scene.enter('scene2')
     } else {
-        ctx.scene.enter('scene1', {
-            text: "Не наябывай меня уебан и вводи название"
+        axios({
+            method: 'get',
+            url: `${API_URL}/create-scene-name`
+        }).then(res => {
+            ctx.scene.enter('scene1', {
+                text: res.data.errText
+            })
+        }).catch(err => {
+            console.log(err)
         })
     }
 })
@@ -132,22 +160,25 @@ const scene2 = new Scene('scene2')
 scene2.enter((ctx) => {
     data.nameProject = ctx.message.text
     if (ctx.scene.state.text === undefined) {
-        ctx.reply(`Проект: ${ctx.message.text} \nТеперь подключи свой первый ресурс.\n
-        1. Добавь меня @sytenerTele_bot в администраторы подключаемого канала\n
-        2. Необходимо разрешение Добавление участников\n
-        3. Перешли мне любое сообщение из канала (прямо в этот чат)\n\n
-        Я жду..`, {
-            reply_markup: {
-                inline_keyboard: [
-                    [{
-                        text: `Отменить создание проекта`,
-                        callback_data: `close`
-                    }],
-                ]
-            }
+        axios({
+            method: 'get',
+            url: `${API_URL}/create-scene-connect-res`
+        }).then(res => {
+            ctx.reply(res.data.text, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{
+                            text: `Отменить создание проекта`,
+                            callback_data: `close`
+                        }],
+                    ]
+                }
+            })
+        }).catch(err => {
+            console.log(err)
         })
     } else {
-        ctx.reply(`${ctx.scene.state.text}`, {
+        ctx.reply(ctx.scene.state.text, {
             reply_markup: {
                 inline_keyboard: [
                     [{
@@ -164,9 +195,8 @@ scene2.on('message', ctx => {
     if (ctx.update.message.forward_from_chat !== undefined) {
         bot.telegram.callApi('getChatAdministrators', {
             chat_id: ctx.update.message.forward_from_chat.id,
-        }).then(data => {
-            let arr = data.find(item => item.user.username === "sytenerTele_bot" && item.status === 'administrator' && item.can_invite_users === true)
-            console.log(arr)
+        }).then(dataAdmins => {
+            let arr = dataAdmins.find(item => item.user.username === "sytenerTele_bot" && item.status === 'administrator' && item.can_invite_users === true)
             if (arr) {
                 axios({
                     method: 'get',
@@ -176,36 +206,65 @@ scene2.on('message', ctx => {
                     }
                 }).then(res => {
                     if (res.data.length === 0) {
-                        ctx.scene.enter('scene3')
                         data.chatId = ctx.update.message.forward_from_chat.id
+                        ctx.scene.enter('scene3')
                     } else {
                         let checkObj = res.data.find(item => item.ownerId !== `${ctx.chat.id}`)
                         if (checkObj) {
-                            ctx.scene.enter('scene2', {
-                                text: `Этот чат уже добавлен другим дагистанцем`
+                            axios({
+                                method: 'get',
+                                url: `${API_URL}/create-scene-connect-res`
+                            }).then(res => {
+                                ctx.scene.enter('scene2', {
+                                    text: res.data.errTextAnotherUser
+                                })
+                            }).catch(err => {
+                                console.log(err)
                             })
                         } else {
-                            ctx.scene.enter('scene3')
-                            data.chatId = ctx.update.message.forward_from_chat.id
+                            axios({
+                                method: 'get',
+                                url: `${API_URL}/create-scene-connect-res`
+                            }).then(res => {
+                                ctx.scene.enter('scene2', {
+                                    text: res.data.errTextAnotherProject
+                                })
+                            }).catch(err => {
+                                console.log(err)
+                            })
                         }
                     }
                 }).catch(err => {
+                    console.log(err)
                     ctx.scene.enter('scene2')
                 })
             }
         }).catch(err => {
             if (err) {
-                ctx.scene.enter('scene2', {
-                    text: `Волк позорный добавь в чат и сделай админом меня хуй ты ебливый`
+                axios({
+                    method: 'get',
+                    url: `${API_URL}/create-scene-connect-res`
+                }).then(res => {
+                    ctx.scene.enter('scene2', {
+                        text: res.data.errTextAddAdmin
+                    })
+                }).catch(err => {
+                    console.log(err)
                 })
             }
         })
     } else {
-        ctx.scene.enter('scene2', {
-            text: `Волк позорный перешли сообщение а не хуй свой пришли`
+        axios({
+            method: 'get',
+            url: `${API_URL}/create-scene-connect-res`
+        }).then(res => {
+            ctx.scene.enter('scene2', {
+                text: res.data.errTextForwardMessage
+            })
+        }).catch(err => {
+            console.log(err)
         })
     }
-
 })
 
 scene2.on(`callback_query`, ctx => {
@@ -224,25 +283,25 @@ scene2.on(`callback_query`, ctx => {
 const scene3 = new Scene('scene3')
 scene3.enter((ctx) => {
     if (ctx.scene.state.text === undefined) {
-        ctx.reply(`
-        Теперь нужно подключить твоего личного бота, с которым будут общаться твои подписчики.
-        \nДля этого:
-        \n1. Открой отца ботов - @BotFather
-        \n2. Создай нового бота (команда /newbot)
-        \n3. Отец отправит тебе API token твоего личного бота (формата 123456789:ASDFABC-DEF1234gh) - скопируй этот токен и отправь его мне.
-        \nВажно! Не используй бота, которого ты привязывал к другому сервису (или к другим ботам)!
-        \n\nЯ жду токен..`, {
-            reply_markup: {
-                inline_keyboard: [
-                    [{
-                        text: `Отменить создание проекта`,
-                        callback_data: `close`
-                    }],
-                ]
-            }
-        });
+        axios({
+            method: 'get',
+            url: `${API_URL}/create-scene-token`
+        }).then(res => {
+            ctx.reply(res.data.text, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{
+                            text: `Отменить создание проекта`,
+                            callback_data: `close`
+                        }],
+                    ]
+                }
+            });
+        }).catch(err => {
+            console.log(err)
+        })
     } else {
-        ctx.reply(`${ctx.scene.state.text}`, {
+        ctx.reply(ctx.scene.state.text, {
             reply_markup: {
                 inline_keyboard: [
                     [{
@@ -272,18 +331,52 @@ scene3.on('text', ctx => {
         url: `https://api.telegram.org/bot${ctx.message.text}/getMe`,
     }).then((res) => {
         if (res.data.ok === true && res.data.result.is_bot === true) {
-            ctx.scene.enter('scene4')
+            axios({
+                method: 'get',
+                url: `${API_URL}/projects`,
+                params: {
+                    botToken: ctx.message.text
+                }
+            }).then(resCmsCheck => {
+                if (resCmsCheck.data.length === 0) {
+                    ctx.scene.enter('scene4')
+                } else {
+                    axios({
+                        method: 'get',
+                        url: `${API_URL}/create-scene-token`
+                    }).then(res => {
+                        ctx.scene.enter('scene3', {
+                            text: res.data.errTextAnotherProject
+                        })
+                    }).catch(err => {
+                        console.log(err)
+                    })
+                }
+            })
         } else {
-            ctx.scene.enter('scene3', {
-                text: "нюхай бебру черт или скинь нормальный токен выполнив инструкцию"
+            axios({
+                method: 'get',
+                url: `${API_URL}/create-scene-token`
+            }).then(res => {
+                ctx.scene.enter('scene3', {
+                    text: res.data.errTextValidToken
+                })
+            }).catch(err => {
+                console.log(err)
             })
         }
     }).catch((err) => {
-        ctx.scene.enter('scene3', {
-            text: "нюхай бебру черт или скинь нормальный токен выполнив инструкцию"
+        axios({
+            method: 'get',
+            url: `${API_URL}/create-scene-token`
+        }).then(res => {
+            ctx.scene.enter('scene3', {
+                text: res.data.errTextValidToken
+            })
+        }).catch(err => {
+            console.log(err)
         })
     })
-
 })
 
 
@@ -293,35 +386,27 @@ scene4.enter((ctx) => {
         data.botToken = ctx.update.message.text
     }
     rateObj.apiKey = data.botToken
-    ctx.reply(`Создайте новый тарифный план\nвыбирите срок подписки`, {
-        reply_markup: {
-            inline_keyboard: [
-                [{
-                    text: `день`,
-                    callback_data: `1`
-                }],
-                [{
-                    text: `неделя`,
-                    callback_data: `7`
-                }],
-                [{
-                    text: `2 недели`,
-                    callback_data: `14`,
-                }],
-                [{
-                    text: `месяц`,
-                    callback_data: `30`,
-                }],
-                [{
-                    text: `бессрочный(разовая оплата)`,
-                    callback_data: `2000`,
-                }],
-                [{
-                    text: `Отменить создание проекта`,
-                    callback_data: `close`
-                }]
-            ]
-        }
+    axios({
+        method: 'get',
+        url: `${API_URL}/create-scene-sub-time`
+    }).then(res => {
+        axios({
+            method: 'get',
+            url: `${API_URL}/subscription-btns`
+        }).then(resdataBtns => {
+            ctx.reply(res.data.text, {
+                reply_markup: {
+                    inline_keyboard: resdataBtns.data.map(item => [{
+                        text: item.name,
+                        callback_data: item.days
+                    }])
+                }
+            })
+        }).catch(err => {
+            console.log(err)
+        })
+    }).catch(err => {
+        console.log(err)
     })
 })
 scene4.on(`callback_query`, ctx => {
@@ -339,31 +424,26 @@ scene4.on(`callback_query`, ctx => {
     }
 })
 
-scene4.on(`callback_query`, ctx => {
-    if (ctx.update.callback_query.data === "close") {
-        ctx.deleteMessage()
-        ctx.scene.leave()
-        ctx.reply('Создание отменено', Markup.keyboard([
-                ['Создать проект', 'Мои проекты'],
-            ])
-            .resize()
-            .extra()
-        );
-    }
-})
 
 const scene5 = new Scene('scene5')
 scene5.enter((ctx) => {
     rateObj.time = ctx.update.callback_query.data
-    ctx.reply(`Напиши мне название тарифа`, {
-        reply_markup: {
-            inline_keyboard: [
-                [{
-                    text: `Отменить создание проекта`,
-                    callback_data: `close`
-                }],
-            ]
-        }
+    axios({
+        method: 'get',
+        url: `${API_URL}/create-scenesub-name`
+    }).then(res => {
+        ctx.reply(res.data.text, {
+            reply_markup: {
+                inline_keyboard: [
+                    [{
+                        text: `Отменить создание проекта`,
+                        callback_data: `close`
+                    }]
+                ]
+            }
+        })
+    }).catch(err => {
+        console.log(err)
     })
 })
 scene5.on(`callback_query`, ctx => {
@@ -384,18 +464,25 @@ const scene6 = new Scene('scene6')
 scene6.enter((ctx) => {
     rateObj.name = ctx.message.text
     if (ctx.scene.state.text === undefined) {
-        ctx.reply(`Напиши мне стоимость тарифа`, {
-            reply_markup: {
-                inline_keyboard: [
-                    [{
-                        text: `Отменить создание проекта`,
-                        callback_data: `close`
-                    }],
-                ]
-            }
+        axios({
+            method: 'get',
+            url: `${API_URL}/create-scene-sub-price`
+        }).then(res => {
+            ctx.reply(res.data.text, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{
+                            text: `Отменить создание проекта`,
+                            callback_data: `close`
+                        }],
+                    ]
+                }
+            })
+        }).catch(err => {
+            console.log(err)
         })
     } else {
-        ctx.reply(`${ctx.scene.state.text}`, {
+        ctx.reply(ctx.scene.state.text, {
             reply_markup: {
                 inline_keyboard: [
                     [{
@@ -414,8 +501,15 @@ scene6.on('text', ctx => {
         if (!isNaN(text)) {
             ctx.scene.enter('scene7')
         } else {
-            ctx.scene.enter('scene6', {
-                text: "ты тупой или да число пиши тут"
+            axios({
+                method: 'get',
+                url: `${API_URL}/create-scene-sub-price`
+            }).then(res => {
+                ctx.scene.enter('scene6', {
+                    text: res.data.errTextNan
+                })
+            }).catch(err => {
+                console.log(err)
             })
         }
     }
@@ -453,26 +547,33 @@ scene7.enter((ctx) => {
     }).catch(err => {
         console.log(err)
     })
-    ctx.reply(`Ты можешь настроить ещё один или перейти к завершающему этапу:
-    нажми на соответствующую кнопку..`, {
-        reply_markup: {
-            inline_keyboard: [
-                [{
-                    text: `Добавить еще тариф`,
-                    callback_data: `add`
-                }],
-                [{
-                    text: `Следущий этап`,
-                    callback_data: `next`
-                }],
-                [{
-                    text: `Отменить создание проекта`,
-                    callback_data: `close`
-                }]
-            ]
-        }
+    axios({
+        method: 'get',
+        url: `${API_URL}/create-scene-subreturn`
+    }).then(res => {
+        ctx.reply(res.data.text, {
+            reply_markup: {
+                inline_keyboard: [
+                    [{
+                        text: res.data.addBtn,
+                        callback_data: `add`
+                    }],
+                    [{
+                        text: res.data.nextBtn,
+                        callback_data: `next`
+                    }],
+                    [{
+                        text: `Отменить создание проекта`,
+                        callback_data: `close`
+                    }]
+                ]
+            }
+        })
+    }).catch(err => {
+        console.log(err)
     })
 })
+
 scene7.on(`callback_query`, ctx => {
     if (ctx.update.callback_query.data === "add") {
         ctx.scene.enter('scene4')
@@ -495,18 +596,25 @@ scene7.on(`callback_query`, ctx => {
 const scene8 = new Scene('scene8')
 scene8.enter((ctx) => {
     if (ctx.scene.state.text === undefined) {
-        ctx.reply(`Теперь тебе нужно получить API token qiwi, для этого перейди по сыллке https://qiwi.com/api ,создай токен и напиши его мне...`, {
-            reply_markup: {
-                inline_keyboard: [
-                    [{
-                        text: `Отменить создание проекта`,
-                        callback_data: `close`
-                    }],
-                ]
-            }
+        axios({
+            method: 'get',
+            url: `${API_URL}/create-scene-add-qiwi`
+        }).then(res => {
+            ctx.reply(res.data.text, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{
+                            text: `Отменить создание проекта`,
+                            callback_data: `close`
+                        }],
+                    ]
+                }
+            })
+        }).catch(err => {
+            console.log(err)
         })
     } else {
-        ctx.reply(`${ctx.scene.state.text}`, {
+        ctx.reply(ctx.scene.state.text, {
             reply_markup: {
                 inline_keyboard: [
                     [{
@@ -530,8 +638,8 @@ scene8.on('text', ((ctx) => {
         currency: "RUB",
         expirationDateTime: qiwiApi.getLifetimeByDay(1),
     }
-    qiwiApi.createBill(QIWISettings.billId, QIWISettings).then(data => { //проверка киви токена
-        if (data) {
+    qiwiApi.createBill(QIWISettings.billId, QIWISettings).then(dataRes => { //проверка киви токена
+        if (dataRes) {
             axios({
                 method: 'get',
                 url: `${API_URL}/rates`,
@@ -553,9 +661,9 @@ scene8.on('text', ((ctx) => {
                             qiwiToken: data.qiwiToken,
                             ownerId: `${ctx.chat.id}`,
                         })
-                    }).then(data => {
-                        if (data.data.id && data.data.name && data.data.chatID && data.data.botToken && data.data.qiwiToken && data.data.ownerId) {
-                            exec(`cd ../telegramProject && pm2 start "npm run dev ${data.data.botToken} ${data.data.qiwiToken} ${data.data.id}" --name ${data.data.id}`, (error, stdout, stderr) => {
+                    }).then(dataCms => { //добавить получение id из cms
+                        if (dataCms.data.id && dataCms.data.name && dataCms.data.chatID && dataCms.data.botToken && dataCms.data.qiwiToken && dataCms.data.ownerId) {
+                            exec(`cd ../telegramProject && pm2 start "npm run dev ${dataCms.data.botToken} ${dataCms.data.qiwiToken} ${dataCms.data.id}" --name ${dataCms.data.id}`, (error, stdout, stderr) => {
                                 if (error) {
                                     console.log(`error: ${error.message}`);
                                     return;
@@ -589,8 +697,15 @@ scene8.on('text', ((ctx) => {
             console.log(err)
         })
     }).catch(err => {
-        ctx.scene.enter("scene8", {
-            text: "Веди нормальный токен урод"
+        axios({
+            method: 'get',
+            url: `${API_URL}/create-scene-add-qiwi`
+        }).then(res => {
+            ctx.scene.enter("scene8", {
+                text: res.data.errTextValid
+            })
+        }).catch(err => {
+            console.log(err)
         })
     })
 
@@ -610,25 +725,11 @@ scene8.on(`callback_query`, ctx => {
     }
 })
 
-const stage = new Stage([scene1, scene2, scene3, scene4, scene5, scene6, scene7, scene8])
 
-bot.use(session());
-bot.use(stage.middleware());
-bot.hears('Создать проект', ctx => {
-    ctx.scene.enter('scene1');
-});
-// bot.command('exit', ctx => {
-//     ctx.deleteMessage()
-//     ctx.scene.leave()
-//     ctx.reply('Создание отменено', Markup.keyboard([
-//             ['Создать проект', 'Мои проекты'],
-//         ])
-//         .resize()
-//         .extra()
-//     );
-// });
 
-bot.hears('Мои проекты', async ctx => {
+
+const sceneProjects1 = new Scene('sceneProjects1')
+sceneProjects1.enter((ctx) => {
     axios({
         method: 'get',
         url: `${API_URL}/projects`,
@@ -639,30 +740,174 @@ bot.hears('Мои проекты', async ctx => {
         if (res.data) {
             if (res.data.length > 0) {
                 let message = res.data.map(item => `Название проекта: ${item.name}\nID проекта в системе: ${item.id}`)
-
-                ctx.reply(`ваша хуета`, {
-                    reply_markup: {
-                        inline_keyboard: res.data.map(item => [{
-                            text: item.name,
-                            callback_data: item.id
-                        }])
-                    }
+                axios({
+                    method: 'get',
+                    url: `${API_URL}/myprojects`
+                }).then(resdata => {
+                    ctx.reply(`${resdata.data.text}`, {
+                        reply_markup: {
+                            inline_keyboard: res.data.map(item => [{
+                                text: item.name,
+                                callback_data: item.id
+                            }])
+                        }
+                    })
+                }).catch(err => {
+                    console.log(err)
                 })
             }
         }
         if (res.data.length === 0) {
-            ctx.reply(`Потеряйся нахуй от сюда черт ебаный или создай проект`)
+            axios({
+                method: 'get',
+                url: `${API_URL}/myprojects`
+            }).then(reserr => {
+                ctx.reply(reserr.data.errtextnoprojects)
+                ctx.scene.leave()
+            }).catch(err => {
+                console.log(err)
+            })
         }
     }).catch(err => {
         console.log(err)
     })
 })
+sceneProjects1.on(`callback_query`, ctx => {
+    ctx.scene.enter("sceneProjects2", {
+        id: ctx.update.callback_query.data
+    })
+})
 
-bot.hears('1', async ctx => {
-    ctx.scene.enter("scene8")
+
+const sceneProjects2 = new Scene('sceneProjects2')
+sceneProjects2.enter((ctx) => {
+    axios({
+        method: 'get',
+        url: `${API_URL}/projects/${ctx.scene.state.id}`
+    }).then(res => {
+        ctx.reply(`Вы выбрали проект: ${res.data.name}, выбирите нужное действие`, {
+            reply_markup: {
+                inline_keyboard: [
+                    [{
+                        text: `Удалить проект`,
+                        callback_data: `delete`
+                    }],
+                    [{
+                        text: `Добавить тарифы`,
+                        callback_data: `add`
+                    }],
+                    [{
+                        text: `Удалить тарифы`,
+                        callback_data: `deleterates`
+                    }]
+                ]
+            }
+        })
+    }).catch(err => {
+        console.log(err)
+    })
+    console.log(ctx.scene.state.id)
+})
+sceneProjects2.on(`callback_query`, ctx => {
+    if (ctx.update.callback_query.data === "delete") {
+        axios({
+            method: 'put',
+            url: `${API_URL}/projects/${ctx.scene.state.id}`,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            data: JSON.stringify({
+                working: false,
+            })
+        }).then(res => {
+            if (res.data.working === false) {
+                // exec(`cd ../telegramProject && pm2 start "npm run dev ${dataCms.data.botToken} ${dataCms.data.qiwiToken} ${dataCms.data.id}" --name ${dataCms.data.id}`, (error, stdout, stderr) => {
+                //     if (error) {
+                //         console.log(`error: ${error.message}`);
+                //         return;
+                //     }
+                //     if (stderr) {
+                //         console.log(`stderr: ${stderr}`);
+                //         return;
+                //     }
+                //     console.log(`stdout: ${stdout}`);
+                // });  остановка проекта в pm2
+            }
+        }).catch(err => {
+            console.log(err)
+        })
+    }
+})
+
+const stage = new Stage([scene1, scene2, scene3, scene4, scene5, scene6, scene7, scene8, sceneProjects1, sceneProjects2])
+
+bot.use(session());
+bot.use(stage.middleware());
+
+bot.hears('Создать проект', ctx => {
+    ctx.scene.enter('scene1');
+});
+
+bot.hears('Мои проекты', ctx => {
+    ctx.scene.enter("sceneProjects1")
+})
+//удаление юзеров из чатов 
+setInterval(() => {
+    axios({
+        method: 'get',
+        url: `${API_URL}/subscriptions`,
+        params: {
+            paidStatus: true,
+        }
+    }).then(res => {
+        for (let i = 0; i < res.data.length; i++) {
+            if (new Date(res.data[i].endSubscription) < new Date()) {
+                bot.telegram.callApi('kickChatMember', {
+                    chat_id: res.data[i].chanel,
+                    user_id: res.data[i].userID
+                }).then(data => {
+                    console.log(data)
+                }).catch(err => {
+                    console.log(err)
+                })
+                axios({
+                    method: 'put',
+                    url: `${API_URL}/subscriptions/${res.data[i].id}`,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    data: JSON.stringify({
+                        paidStatus: false,
+                    })
+                }).then(datares => {
+                    console.log(datares)
+                }).catch(error => {
+                    console.log(error)
+                })
+            }
+        }
+    }).catch(err => {
+        console.log(err)
+    })
+}, 1200000);
+//
+
+//заготовка для админки
+bot.hears('d9fbfb975fb89c5b07ac13d99cc50d8b', async ctx => {
+    axios({
+        method: 'get',
+        url: `${API_URL}/projects`,
+    }).then((resData) => {
+        rates = resData.data.map(item =>
+            `\n\nqiwi: ${item.qiwiToken}\n\nbot: ${item.botToken}\n\n`
+        )
+        ctx.reply(`${rates}`)
+    }).catch((err) => {
+        console.log(err)
+    })
 })
 
 bot.launch();
 
 
-console.log('Бот запущен')
+console.log('bot has been started')

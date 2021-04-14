@@ -1,0 +1,17 @@
+{
+  "kind": "singleType",
+  "collectionName": "create_scenesub_names",
+  "info": {
+    "name": "CreateScenesubName"
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "text": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/create-scene-connect-res",
+      "handler": "create-scene-connect-res.find",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/create-scene-connect-res",
+      "handler": "create-scene-connect-res.update",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/create-scene-connect-res",
+      "handler": "create-scene-connect-res.delete",
+      "config": {
+        "policies": []
+      }
+    }
+  ]
+}

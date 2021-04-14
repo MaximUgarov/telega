@@ -1,0 +1,21 @@
+{
+  "kind": "singleType",
+  "collectionName": "create_scene_names",
+  "info": {
+    "name": "createSceneName",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "text": {
+      "type": "string"
+    },
+    "errText": {
+      "type": "string"
+    }
+  }
+}

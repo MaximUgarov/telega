@@ -1,0 +1,20 @@
+{
+  "kind": "singleType",
+  "collectionName": "create_scene_add_qiwis",
+  "info": {
+    "name": "CreateSceneAddQiwi"
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "text": {
+      "type": "string"
+    },
+    "errTextValid": {
+      "type": "string"
+    }
+  }
+}

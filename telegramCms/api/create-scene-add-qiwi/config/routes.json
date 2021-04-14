@@ -1,0 +1,28 @@
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/create-scene-add-qiwi",
+      "handler": "create-scene-add-qiwi.find",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/create-scene-add-qiwi",
+      "handler": "create-scene-add-qiwi.update",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/create-scene-add-qiwi",
+      "handler": "create-scene-add-qiwi.delete",
+      "config": {
+        "policies": []
+      }
+    }
+  ]
+}

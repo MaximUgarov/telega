@@ -2,10 +2,18 @@ const {
     Telegraf,
     Scenes,
     session,
-    Markup
+    Markup,
+    Stage
 } = require('telegraf');
 
+const {
+    enter,
+    leave
+} = Stage;
+
 const axios = require('axios');
+
+const Scene = require('telegraf/scenes/base')
 
 const Moment = require('Moment');
 
@@ -66,7 +74,7 @@ const QIWISettings = {
 
 let dateSubcribe = ""
 let rateName = ""
-bot.telegram.setWebhook(`https://5ef62666f909.ngrok.io/bot`)
+bot.telegram.setWebhook(`https://codovstvo.ru/${process.argv[4]}`)
 
 const server = express();
 
@@ -77,7 +85,7 @@ server.use(bodyParser.json({
 server.use(bodyParser.urlencoded({
     extended: true
 }))
-server.listen(3000 + Number(process.argv[4]), err => {
+server.listen(10000 + Number(process.argv[4]), err => {
     if (err) {
         throw err;
     }
@@ -117,7 +125,7 @@ bot.hears('Тарифы', async ctx => {
             bot.telegram.sendMessage(ctx.chat.id, `Здравствуйте я ваша совесть, для того чтобы попасть в канал "ававава" купите подписку`, {
                 reply_markup: {
                     inline_keyboard: res.data.map(item => [{
-                        text: item.name,
+                        text: `Название Тарифа: ${item.name}${item.price},${item.days}`, //че нинибудь с кастомизацией придумать
                         callback_data: `${item.price},${item.days},${item.name}`
                     }])
                 }
@@ -145,7 +153,6 @@ bot.hears('Моя подписка', async ctx => {
         } else {
             let rates
             if (Array.isArray(res.data)) {
-                console.log("gfdg")
                 rates = res.data.map(item =>
                     `\n\nГруппа/Канал: ${item.chanelLink} \nНазвание подписки: ${item.rateName} \nДата окончания подписки: ${item.endSubscription}`
                 )
@@ -164,6 +171,8 @@ bot.on(`callback_query`, async ctx => {
     let chadID = await getChatifcms()
     if (ctx.update.callback_query.data !== "cancel_pay" && ctx.update.callback_query.data !== "check_pay") {
         ctx.deleteMessage()
+
+
         dateSubcribe = ctx.update.callback_query.data.split(",")[1]
         QIWISettings.amount = ctx.update.callback_query.data.split(",")[0] // цена
         QIWISettings.comment = "Оплата подписки", // Коментарий
@@ -200,6 +209,7 @@ bot.on(`callback_query`, async ctx => {
         qiwiApi.getBillInfo(QIWISettings.billId).then(data => {
             if (data) {
                 if (data.status.value === "WAITING") {
+                    console.log(chadID)
                     bot.telegram.callApi('getChat', {
                         chat_id: chadID,
                     }).then((resDataName) => {
@@ -213,14 +223,20 @@ bot.on(`callback_query`, async ctx => {
                             }
                         }).then((resdataCheck) => {
                             if (resdataCheck.data.length === 0) {
-                                bot.telegram.callApi('createChatInviteLink', {
-                                    chat_id: chadID,
-                                    member_limit: 1
-                                }).then(data => {
+
+                                axios({
+                                    method: 'post',
+                                    url: `http://127.0.0.1:10055/createpay`,
+                                    params: {
+                                        chat_id: chadID,
+                                        member_limit: 1
+                                    }
+                                }).then(resDatafromMainbot => {
+                                    console.log(resDatafromMainbot)
                                     ctx.deleteMessage()
-                                    bot.telegram.sendMessage(ctx.chat.id, `Ваша сыллка в канал ${data.invite_link}`)
-                                }).catch(err => {
-                                    console.log(err)
+                                    bot.telegram.sendMessage(ctx.chat.id, `Ваша сыллка в канал ${resDatafromMainbot.data.invite_link}`)
+                                }).catch(errorReq => {
+                                    console.log(errorReq)
                                 })
                                 axios({
                                     method: 'post',
@@ -263,6 +279,8 @@ bot.on(`callback_query`, async ctx => {
                                 })
                             }
                         })
+                    }).catch(error => {
+                        console.log(error)
                     })
                 } else {
                     ctx.deleteMessage()
@@ -286,7 +304,10 @@ bot.on(`callback_query`, async ctx => {
     }
 })
 
+// const stage = new Stage([scene1])
 
+// bot.use(session());
+// bot.use(stage.middleware());
 
 bot.launch();
 

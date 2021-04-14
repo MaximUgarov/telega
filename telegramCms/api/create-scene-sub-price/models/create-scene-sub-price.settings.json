@@ -1,0 +1,20 @@
+{
+  "kind": "singleType",
+  "collectionName": "create_scene_sub_prices",
+  "info": {
+    "name": "CreateSceneSubPrice"
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "text": {
+      "type": "string"
+    },
+    "errTextNan": {
+      "type": "string"
+    }
+  }
+}

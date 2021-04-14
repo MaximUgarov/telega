@@ -1,0 +1,29 @@
+{
+  "kind": "singleType",
+  "collectionName": "create_scene_connect_res",
+  "info": {
+    "name": "CreateSceneConnectRes"
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "text": {
+      "type": "string"
+    },
+    "errTextAnotherUser": {
+      "type": "string"
+    },
+    "errTextAnotherProject": {
+      "type": "string"
+    },
+    "errTextAddAdmin": {
+      "type": "string"
+    },
+    "errTextForwardMessage": {
+      "type": "string"
+    }
+  }
+}

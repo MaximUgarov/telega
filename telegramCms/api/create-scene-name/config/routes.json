@@ -1,0 +1,28 @@
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/create-scene-name",
+      "handler": "create-scene-name.find",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/create-scene-name",
+      "handler": "create-scene-name.update",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/create-scene-name",
+      "handler": "create-scene-name.delete",
+      "config": {
+        "policies": []
+      }
+    }
+  ]
+}

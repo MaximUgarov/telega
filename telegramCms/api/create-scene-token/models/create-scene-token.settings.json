@@ -1,0 +1,23 @@
+{
+  "kind": "singleType",
+  "collectionName": "create_scene_tokens",
+  "info": {
+    "name": "CreateSceneToken"
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "text": {
+      "type": "string"
+    },
+    "errTextAnotherProject": {
+      "type": "string"
+    },
+    "errTextValidToken": {
+      "type": "string"
+    }
+  }
+}
